@@ -1,15 +1,22 @@
-# Python program to read
-# json file
+# This script translates the annotations from Superannotate software to the wflw format annotations
+# it receives annotations.json and classes.json from the Superannotate export format.
+# it outputs:
+#   outputAnnotations.txt - coordinates of 98 landmarks (196) + coordinates of upper left corner and lower right corner of detection rectangle (x1, y1, x2, y2) (4) +  image name (1)
+#   scripts.log - this log is helpful to debug errors in annotations.
+#Notes
+#   The script saves only images with all annotations (if an error was detected the images isn't saved to the text file).
+# for future processing - better if image name doesnt include spaces.
 
-# This scripts assumes:
-# all images have no spaces in image name
-
+# to execute this script
+# change the annotations.json file to the correct one.
+# delete scripts.log file (the script doesnt rewrite the log file, it continues it.)
 
 import logging
 import json
+import datetime
 
 # initialize the log settings
-logging.basicConfig(filename='script.log',level=logging.INFO)
+logging.basicConfig(filename=f'script_{datetime.datetime.now().strftime("%Y%m%d-%H%M%S")}.log',level=logging.INFO)
 
 # Opening JSON file
 f = open('src/annotations.json', )
@@ -219,13 +226,3 @@ for imagename in annotations:
 
 outF.close()
 
-# ###
-# def addNumbers(a, b):
-#     try:
-#         return a + b
-#     except Exception as e:
-#         return 'Error occurred : ' + str(e)
-#
-#
-# print
-# addNumbers('', 10)
