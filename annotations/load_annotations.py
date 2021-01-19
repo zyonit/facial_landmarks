@@ -30,7 +30,7 @@ f.close()
 c.close()
 
 #output text file
-outF = open("outputAnnotations.txt", "w")
+outF = open("src/outputAnnotations.txt", "w")
 
 # new dictionary of only relevant information of classes maping
 classes = {}
@@ -123,7 +123,9 @@ for imagename in annotations:
 
             if classes[label_dic['classId']]['name'] == 'face_boundingbox':
                 try:
-                    tmp_image_bbox = [label_dic['points']['x1'] , label_dic['points']['y1'], label_dic['points']['x2'],label_dic['points']['y2']]
+                    tmp_image_bbox = [int(label_dic['points']['x1']) , int(label_dic['points']['y1']), int(label_dic['points']['x2']),int(label_dic['points']['y2'])]
+                    ##fill outline with a landmark inside the face crop
+                    tmp_image_annotation[0:33*2] = [label_dic['points']['x1'] , label_dic['points']['y1']] *33
                     logging.info(f'Image {imagename}: updated {classes[label_dic["classId"]]["name"]}')
                     bbox_validation +=1
                 except Exception  as e:
