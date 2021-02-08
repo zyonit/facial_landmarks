@@ -20,7 +20,7 @@ logging.basicConfig(filename=f'script_{datetime.datetime.now().strftime("%Y%m%d-
 
 # Opening JSON file
 f = open('src/annotations.json', )
-c = open('src/classes.json',)
+c = open('src/classes.json', )
 
 # returns JSON object as
 # a dictionary
@@ -37,6 +37,7 @@ classes = {}
 for key in classes_json:
     classes[key['id']] = {"name": key['name'] ,"attribute_groups" : key["attribute_groups"]  }
 
+print(classes)
 # Iterating through the json
 # list
 for imagename in annotations:
@@ -47,6 +48,7 @@ for imagename in annotations:
     polygons_validation = 0 # used to count that the images have all the needed labels
     nose_validation = []
     nostrils_validation = []
+    outlines_validation= []
     pupils_validation = 0
     bbox_validation =0
     for label_dic in annotations[imagename]:
@@ -57,6 +59,8 @@ for imagename in annotations:
                 try:
                     assert(len(label_dic['points'])==18)
                     tmp_image_annotation[42*2:42*2+18] = label_dic['points']
+                    print(type(label_dic['points'][0]))
+
                     polygons_validation +=1
                     logging.info(f'Image {imagename}: updated {classes[label_dic["classId"]]["name"]}')
                 except Exception  as e:
@@ -147,6 +151,20 @@ for imagename in annotations:
                     logging.error(f'Image {imagename}: could not calculate  {classes[label_dic["classId"]]["name"]}  point, Error occurred : ' + str(e))
                     continue
 
+            if classes[label_dic['classId']]['name'] == 'outlines':
+                try:
+                    x = label_dic['x']
+                    y = label_dic['y']
+                    id = label_dic['attributes'][0]['id']
+                    index = int(next((item for item in classes[label_dic['classId']]['attribute_groups'][0]['attributes'] if item['id'] == id), "Default value")['name'])
+                    outlines_validation.append(index)
+                    tmp_image_annotation[index*2:index*2+2] = [x , y]
+                    logging.info(f'Image {imagename}: updated point {index}')
+                except Exception  as e:
+                    print (f'Image {imagename}: could not calculate  {classes[label_dic["classId"]]["name"]} point, Error occurred : ' + str(e))
+                    logging.error(f'Image {imagename}: could not calculate  {classes[label_dic["classId"]]["name"]}  point, Error occurred : ' + str(e))
+                    continue
+
             if classes[label_dic['classId']]['name'] == 'nostrils':
                 try:
                     x = label_dic['x']
@@ -205,6 +223,13 @@ for imagename in annotations:
     except:
         print(f'Image {imagename}:  wrong number of nose points')
         logging.error(f'Image {imagename}:  wrong number of nose points')
+    try:
+        assert (len(set(outlines_validation)) == 33)
+
+    except:
+        print(f'Image {imagename}:  wrong number of outlines points')
+        logging.error(f'Image {imagename}:  wrong number of outlines points')
+
 
     try:
         assert (pupils_validation == 2)
@@ -213,7 +238,7 @@ for imagename in annotations:
         logging.error(f'Image {imagename}: missing pupil points')
 
     try:
-        assert ((pupils_validation+ polygons_validation +len(set(nose_validation)) + len(set(nostrils_validation))+ bbox_validation)  == 18)
+        assert ((pupils_validation+ polygons_validation +len(set(nose_validation)) + len(set(nostrils_validation))+ bbox_validation+ len(set(outlines_validation))  == 51))
         logging.info(f"Image {imagename}: verified all annotations exist. Ready to write")
         outF.write(str(tmp_image_annotation + tmp_image_bbox).replace(',', '')[1:-1]+ " " + imagename)
         str(tmp_image_annotation + tmp_image_bbox).replace(',', '')[1:-1]+ " " + imagename
@@ -222,6 +247,7 @@ for imagename in annotations:
     except:
         print(f'Image {imagename}: missing some labels, skipping image')
         logging.error(f'Image {imagename}: missing some label, skipping image')
+
 
 
 
